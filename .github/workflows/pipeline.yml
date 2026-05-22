@@ -1,0 +1,58 @@
+name: SuperKart MLOps Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * 1'
+
+jobs:
+  mlops-pipeline:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        pip install -r app/requirements.txt
+        pip install datasets scikit-learn
+
+    - name: Data preparation
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: python scripts/data_prep.py
+
+    - name: Model training and evaluation
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: python scripts/train.py
+
+    - name: Register model on HF Hub
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: python scripts/register_model.py
+
+    - name: Deploy to HF Spaces
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: python scripts/deploy.py
+
+    - name: Commit metrics back to main
+      run: |
+        git config user.name 'GitHub Actions Bot'
+        git config user.email 'actions@github.com'
+        git add metrics/ || true
+        git diff --staged --quiet || git commit -m 'chore: update metrics [skip ci]'
+        git push
