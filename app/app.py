@@ -8,8 +8,8 @@ st.markdown("Predict **Product Store Sales Total** using the trained Gradient Bo
 
 @st.cache_resource
 def load_artifacts():
-    model    = joblib.load(hf_hub_download("karamvir-singh/superkart-gbm", "gbm_model.pkl"))
-    encoders = joblib.load(hf_hub_download("karamvir-singh/superkart-gbm", "label_encoders.pkl"))
+    model    = joblib.load(hf_hub_download("karamvir/superkart-gbm", "gbm_model.pkl"))
+    encoders = joblib.load(hf_hub_download("karamvir/superkart-gbm", "label_encoders.pkl"))
     return model, encoders
 
 model, encoders = load_artifacts()
